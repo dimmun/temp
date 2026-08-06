@@ -422,3 +422,54 @@ Note also $\sigma_i \approx 0.58$ against $\tau \approx 0.3$: shrinkage is sever
 - **Fat tails.** $\widehat{\text{Cov}}$ is a product of deviations, so a few joint outliers dominate it regardless of weighting. Winsorize $x$ and $y$ before calibration — this buys more than optimal weighting does.
 - **Panels.** With drifting $a_t, b_t$, run calibration within each cross-section, never pooled. A single intercept and slope cannot absorb time-varying bias.
 - **Absolute scale.** $x$ can never inform the level. If you need one, it must come from $y$ or an external anchor.
+
+
+Everything stays closed-form; one scalar $g$ deforms the level machinery and nothing else.
+
+## Prior on $\mu$
+
+$\mu \sim N(0,\sigma_\mu^2)$ with $\theta_i \mid \mu \sim N(\mu,\tau^2)$ is the same as a proper exchangeable prior on the whole vector:
+
+$$\boldsymbol\theta \sim N\big(\mathbf 0,\ \tau^2 I + \sigma_\mu^2\,\mathbf 1\mathbf 1^\top\big)$$
+
+equicorrelated with $\text{corr}(\theta_i,\theta_j) = \sigma_\mu^2/(\tau^2+\sigma_\mu^2)$. The flat case is the $\sigma_\mu^2\to\infty$ limit.
+
+## What changes
+
+$$\frac{\partial Q}{\partial\mu} = 0 \;\Longrightarrow\; \mu = g\,\bar\theta, \qquad g = \frac{N\sigma_\mu^2}{N\sigma_\mu^2 + \tau^2} \in (0,1]$$
+
+The level is itself shrunk toward 0. Equivalently, by Sherman–Morrison the prior precision is
+
+$$\Omega^{-1} = \frac{1}{\tau^2}\left(I - g\,\tfrac{\mathbf 1\mathbf 1^\top}{N}\right)$$
+
+so the flat-prior projector $P = I - \mathbf 1\mathbf 1^\top/N$ becomes $I - g\,\mathbf 1\mathbf 1^\top/N$. **That single substitution is the whole change.** The $\partial Q/\partial a$ condition is untouched, so $x$ still enters only demeaned.
+
+## Result
+
+$$c = \frac{b^2}{\omega^2}+\frac{1}{\tau^2}, \qquad c_g = \frac{b^2}{\omega^2}+\frac{g}{\tau^2}, \qquad d_i = \left(\tfrac{1}{\sigma_i^2}+c\right)^{-1}, \qquad p_i = \frac{d_i}{\sigma_i^2}$$
+
+$$q_i \;=\; 1 - c_g d_i \;=\; p_i + (1-g)\frac{d_i}{\tau^2}$$
+
+$$\tilde x = \frac{\sum_j q_j x_j}{\sum_j q_j}, \qquad L = \kappa\cdot\frac{\sum_j p_j y_j}{\sum_j p_j}, \qquad \kappa = \frac{c_g}{c}\cdot\frac{\sum_j p_j}{\sum_j q_j}$$
+
+$$\boxed{\;E[\theta_i \mid y,x] = L + p_i\,(y_i - L) + \frac{b\,d_i}{\omega^2}\,(x_i - \tilde x)\;}$$
+
+$$\text{Var}(\theta_i\mid y,x) = d_i + \frac{c_g\,d_i^2}{\sum_j q_j}, \qquad \text{Cov}(\theta_i,\theta_j\mid y,x) = \frac{c_g\,d_i\,d_j}{\sum_j q_j}$$
+
+Matrix form: precision $\Sigma^{-1} + cI - c_g\,\mathbf 1\mathbf 1^\top/N$, mean that inverse times $\Sigma^{-1}\mathbf y + \frac{b}{\omega^2}P\mathbf x$. Verified against a brute-force $(\boldsymbol\theta,\mu,a)$ solve.
+
+## Reading it
+
+**Three things move, in the same direction.** $q_i \ge p_i$, so the level normalizer $\sum_j q_j$ grows — the prior contributes level information the data no longer has to supply. That shrinks the posterior variance and the cross-unit covariance, and it shifts the $x$-center from $p$-weights to $q$-weights.
+
+**$\kappa \le 1$ shrinks the level toward zero.** With $g = 1$: $c_g = c$, $q_i = p_i$, $\kappa = 1$, and you recover the flat-prior result exactly. With $g \to 0$ ($\mu$ pinned at 0): $\kappa \to R_x = b^2\tau^2/(b^2\tau^2+\omega^2)$ — the level collapses toward the prior mean at a rate set by how much $x$ independently supports it.
+
+**$d_i$ and $p_i$ are unchanged.** The per-unit shrinkage of deviations is untouched; only the level machinery deforms. Which is right — the prior on $\mu$ says nothing about how units differ from each other.
+
+**$x$ still cannot inform the level.** $P$ still multiplies $\mathbf x$ while $J$ appears in the prior term. That asymmetry survives because $a$ is still flat, and it's what makes the prior on $\mu$ the *only* non-$y$ source of level information.
+
+## Whether it's worth doing
+
+$g$ is near 1 unless $\sigma_\mu^2 \lesssim \tau^2/N$. In the Sharpe setting with $N=50$ strategies and $\tau = 0.3$, that threshold is $\sigma_\mu \approx 0.04$ — you'd have to be near-certain the average true Sharpe is within a few basis points of zero before the prior does anything. With any honest uncertainty about $\mu$, this reduces to the flat case.
+
+It earns its keep in the opposite regime: small $N$, or when you genuinely believe the mean true Sharpe across a research program is ~0 and want to stop a lucky OOS period from lifting the entire cross-section. That's a defensible prior — but state $\sigma_\mu$ explicitly, because at $N$ of any size it's doing either nothing or a great deal.
