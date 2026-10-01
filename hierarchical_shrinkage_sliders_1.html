@@ -14,8 +14,8 @@ input[type=range]{width:100%;accent-color:#534AB7}</style><script>!function(e,t)
 <div class="lg">
 <span><svg width="10" height="10"><circle cx="5" cy="5" r="3" fill="#444" opacity=".35"/></svg> <span class="k" data-t="S^{OOS}_k"></span></span>
 <span><svg width="10" height="10"><circle cx="5" cy="5" r="3.5" fill="#7F77DD"/></svg> <span class="k" data-t="\hat S_k"></span></span>
-<span><svg width="14" height="12"><line x1="7" y1="0" x2="7" y2="12" stroke="#444" stroke-dasharray="2 2"/></svg> <span class="k" data-t="\bar S^{OOS}_c"></span></span>
 <span><svg width="14" height="12"><line x1="7" y1="0" x2="7" y2="12" stroke="#534AB7" stroke-width="3"/></svg> <span class="k" data-t="\hat m_c"></span></span>
+<span><svg width="14" height="12"><line x1="7" y1="0" x2="7" y2="12" stroke="#222" stroke-width="1.5" stroke-dasharray="3 2"/></svg> <span class="k" data-t="m_c\ \text{(true)}"></span></span>
 <span><svg width="14" height="12"><line x1="7" y1="0" x2="7" y2="12" stroke="#D85A30" stroke-dasharray="4 2" stroke-width="1.5"/></svg> <span class="k" data-t="\mu = 0.4"></span></span>
 </div>
 <div id="rows"></div>
@@ -32,7 +32,7 @@ const C=sizes.map((n,c)=>{const it=[];for(let i=0;i<n;i++){const T=Math.max(1,Ma
 const X=v=>10+(Math.max(-1.5,Math.min(2.5,v))+1.5)/4*520;
 const toT=v=>Math.pow(10,v/50),toV=T=>Math.round(50*Math.log10(T));
 const fmt=T=>T<10?T.toFixed(1):Math.round(T);
-let rows='';C.forEach((cl,i)=>rows+=`<div class="row"><div class="lab"><div class="k" data-t="\\textbf{Cluster } c_${i+1}"></div><div class="k" data-t="n_{c_${i+1}} = ${cl.n}"></div><div id="tc${i}"></div><div id="hm${i}"></div></div><svg id="r${i}" width="100%" viewBox="0 0 540 64"></svg></div>`);
+let rows='';C.forEach((cl,i)=>rows+=`<div class="row"><div class="lab"><div class="k" data-t="\\textbf{Cluster } c_${i+1}"></div><div class="k" data-t="n_{c_${i+1}} = ${cl.n}"></div><div id="tc${i}"></div><div class="k" data-t="m_{c_${i+1}} = ${mTrue[i].toFixed(2)}"></div><div id="hm${i}"></div></div><svg id="r${i}" width="100%" viewBox="0 0 540 64"></svg></div>`);
 document.getElementById('rows').innerHTML=rows;
 let ax=`<line x1="10" x2="530" y1="4" y2="4" stroke="#444" stroke-width="0.5"/>`;
 for(let v=-1.5;v<=2.5;v+=0.5)ax+=`<line x1="${X(v)}" x2="${X(v)}" y1="4" y2="9" stroke="#444" stroke-width="0.5"/><text x="${X(v)}" y="24" text-anchor="middle" style="font-family:KaTeX_Main,serif;font-size:13px;fill:#222">${v}</text>`;
@@ -49,7 +49,8 @@ K(document.getElementById('tc'+i),`T_{c_${i+1}} = ${fmt(tc)}`);K(document.getEle
 let h=`<line x1="${X(MU)}" x2="${X(MU)}" y1="0" y2="64" stroke="#D85A30" stroke-width="1.5" stroke-dasharray="5 3"/>`;
 cl.it.forEach(k=>{const e=m+k.T/(k.T+tc)*(k.O-m),y=32+k.j;
 h+=`<line x1="${X(k.O)}" x2="${X(e)}" y1="${y}" y2="${y}" stroke="#7F77DD" stroke-width="0.6" opacity=".35"/><circle cx="${X(k.O)}" cy="${y}" r="2" fill="#444" opacity=".3"/><circle cx="${X(e)}" cy="${y}" r="2.5" fill="#7F77DD"/>`});
-h+=`<line x1="${X(Sb)}" x2="${X(Sb)}" y1="4" y2="60" stroke="#444" stroke-dasharray="3 3"/><line x1="${X(m)}" x2="${X(m)}" y1="4" y2="60" stroke="#534AB7" stroke-width="3"/>`;
+h+=`<line x1="${X(m)}" x2="${X(m)}" y1="4" y2="60" stroke="#534AB7" stroke-width="3"/>`;
+const xt=X(mTrue[i]);h+=`<line x1="${xt}" x2="${xt}" y1="4" y2="60" stroke="#222" stroke-width="1.5" stroke-dasharray="4 3"/>`;
 document.getElementById('r'+i).innerHTML=h;});}
 document.querySelectorAll('.k').forEach(e=>K(e,e.dataset.t));
 document.querySelectorAll('input[type=range]').forEach(e=>e.oninput=draw);draw();
